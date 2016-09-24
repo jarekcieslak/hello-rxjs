@@ -2,7 +2,8 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/merge';
-import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/filter';
+import 'rxjs/add/operator/mapTo';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/startWith';
 
@@ -10,8 +11,6 @@ import 'rxjs/add/operator/startWith';
   selector: 'app-root',
   styleUrls: ['./app.component.css'],
   template: `
-  <button #left md-raised-button color="accent">Move Left</button>
-  <button #right md-raised-button color="accent">Move Right</button>
   <div class="container">
     <div #ball class="ball"
       [style.left]="position.x + 'px'"
@@ -21,24 +20,36 @@ import 'rxjs/add/operator/startWith';
   `
 })
 export class AppComponent implements OnInit {
-  @ViewChild('left') left;
-  @ViewChild('right') right;
   position: any;
 
   ngOnInit() {
-    const left$ = Observable.fromEvent(this.getNativeElement(this.left), 'click')
-      .map(event => -10)
+    const leftArrow$ = Observable.fromEvent(document, 'keydown')
+      .filter(event => event.key === 'ArrowLeft')
+      .mapTo(position => this.decrement(position, 'x', 10));
 
-    const right$ = Observable.fromEvent(this.getNativeElement(this.right), 'click')
-      .map(event => 10)
+    const rightArrow$ = Observable.fromEvent(document, 'keydown')
+      .filter(event => event.key === 'ArrowRight')
+      .mapTo(position => this.increment(position, 'x', 10));
 
-    Observable.merge(left$, right$)
+    const downArrow$ = Observable.fromEvent(document, 'keydown')
+      .filter(event => event.key === 'ArrowDown')
+      .mapTo(position => this.increment(position, 'y', 10));
+
+    const upArrow$ = Observable.fromEvent(document, 'keydown')
+      .filter(event => event.key === 'ArrowUp')
+      .mapTo(position => this.decrement(position, 'y', 10));
+
+    Observable.merge(leftArrow$, rightArrow$, downArrow$, upArrow$)
       .startWith({x: 200, y: 200})
-      .scan((acc, curr) => Object.assign({}, acc, {x: acc.x + curr}))
-      .subscribe(position => this.position = position);
+      .scan((acc, curr) => curr(acc))
+      .subscribe(position => this.position = position)
   }
 
-  getNativeElement(element) {
-    return element._elementRef.nativeElement;
+  increment(obj, prop, value) {
+    return Object.assign({}, obj, {[prop]: obj[prop] + value})
+  }
+
+  decrement(obj, prop, value) {
+    return Object.assign({}, obj, {[prop]: obj[prop] - value})
   }
 }
