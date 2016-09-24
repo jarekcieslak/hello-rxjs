@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/startWith';
@@ -9,6 +10,7 @@ import 'rxjs/add/operator/startWith';
   selector: 'app-root',
   styleUrls: ['./app.component.css'],
   template: `
+  <button #left md-raised-button color="accent">Move Left</button>
   <button #right md-raised-button color="accent">Move Right</button>
   <div class="container">
     <div #ball class="ball"
@@ -19,13 +21,19 @@ import 'rxjs/add/operator/startWith';
   `
 })
 export class AppComponent implements OnInit {
+  @ViewChild('left') left;
   @ViewChild('right') right;
   position: any;
 
   ngOnInit() {
-    Observable.fromEvent(this.getNativeElement(this.right), 'click')
+    const left$ = Observable.fromEvent(this.getNativeElement(this.left), 'click')
+      .map(event => -10)
+
+    const right$ = Observable.fromEvent(this.getNativeElement(this.right), 'click')
       .map(event => 10)
-      .startWith({x: 400, y: 400})
+
+    Observable.merge(left$, right$)
+      .startWith({x: 200, y: 200})
       .scan((acc, curr) => Object.assign({}, acc, {x: acc.x + curr}))
       .subscribe(position => this.position = position);
   }
