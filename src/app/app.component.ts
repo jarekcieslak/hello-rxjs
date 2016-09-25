@@ -5,6 +5,7 @@ import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/pairwise';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/switchMap';
@@ -14,37 +15,32 @@ import 'rxjs/add/operator/takeUntil';
   selector: 'app-root',
   styleUrls: ['./app.component.css'],
   template: `
-  <div #ball class="ball"
-    [style.left]="position.x + 'px'"
-    [style.top]="position.y + 'px'">
-  </div>
+  <app-line
+    *ngFor="let line of lines" [line]="line">
+  </app-line>
   `
 })
 export class AppComponent implements OnInit {
-  @ViewChild('ball') ball;
-  position: any;
-
+  lines: any[] = [];
   ngOnInit() {
-    const BALL_OFFSET = 50;
+    const emptyLine: any = { x1: 0, y1: 0, x2: 0, y2: 0 };
 
-    const move$ = Observable.fromEvent(document, 'mousemove')
-      .map(event => {
+    // Observable.fromEvent(document, 'mousemove')
+    Observable.fromEvent(document, 'click')
+      .map((event: any) => {
         const offset = $(event.target).offset();
         return {
-          x: event.clientX - offset.left - BALL_OFFSET,
-          y: event.pageY - BALL_OFFSET
+          x: event.clientX - offset.left,
+          y: event.pageY - offset.top
         };
-      });
-
-    const down$ = Observable.fromEvent(this.ball.nativeElement, 'mousedown')
-      .do(event => this.ball.nativeElement.style.pointerEvents = 'none');
-
-    const up$ = Observable.fromEvent(document, 'mouseup')
-      .do(event => this.ball.nativeElement.style.pointerEvents = 'all');
-
-    down$
-      .switchMap(event => move$.takeUntil(up$))
-      .startWith({ x: 100, y: 100})
-      .subscribe(position => this.position = position);
+      })
+      .pairwise(2)
+      .map(positions => {
+        const p1 = positions[0];
+        const p2 = positions[1];
+        return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+      })
+      .startWith(emptyLine)
+      .subscribe(line => this.lines = [...this.lines, line]);
   }
 }
