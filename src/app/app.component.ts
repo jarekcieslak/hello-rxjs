@@ -2,54 +2,49 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/mapTo';
+import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/scan';
 import 'rxjs/add/operator/startWith';
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/takeUntil';
 
 @Component({
   selector: 'app-root',
   styleUrls: ['./app.component.css'],
   template: `
-  <div class="container">
-    <div #ball class="ball"
-      [style.left]="position.x + 'px'"
-      [style.top]="position.y + 'px'">
-    </div>
+  <div #ball class="ball"
+    [style.left]="position.x + 'px'"
+    [style.top]="position.y + 'px'">
   </div>
   `
 })
 export class AppComponent implements OnInit {
+  @ViewChild('ball') ball;
   position: any;
 
   ngOnInit() {
-    const leftArrow$ = Observable.fromEvent(document, 'keydown')
-      .filter(event => event.key === 'ArrowLeft')
-      .mapTo(position => this.decrement(position, 'x', 10));
+    const BALL_OFFSET = 50;
 
-    const rightArrow$ = Observable.fromEvent(document, 'keydown')
-      .filter(event => event.key === 'ArrowRight')
-      .mapTo(position => this.increment(position, 'x', 10));
+    const move$ = Observable.fromEvent(document, 'mousemove')
+      .map(event => {
+        const offset = $(event.target).offset();
+        return {
+          x: event.clientX - offset.left - BALL_OFFSET,
+          y: event.pageY - BALL_OFFSET
+        };
+      });
 
-    const downArrow$ = Observable.fromEvent(document, 'keydown')
-      .filter(event => event.key === 'ArrowDown')
-      .mapTo(position => this.increment(position, 'y', 10));
+    const down$ = Observable.fromEvent(this.ball.nativeElement, 'mousedown')
+      .do(event => this.ball.nativeElement.style.pointerEvents = 'none');
 
-    const upArrow$ = Observable.fromEvent(document, 'keydown')
-      .filter(event => event.key === 'ArrowUp')
-      .mapTo(position => this.decrement(position, 'y', 10));
+    const up$ = Observable.fromEvent(document, 'mouseup')
+      .do(event => this.ball.nativeElement.style.pointerEvents = 'all');
 
-    Observable.merge(leftArrow$, rightArrow$, downArrow$, upArrow$)
-      .startWith({x: 200, y: 200})
-      .scan((acc, curr) => curr(acc))
-      .subscribe(position => this.position = position)
-  }
-
-  increment(obj, prop, value) {
-    return Object.assign({}, obj, {[prop]: obj[prop] + value})
-  }
-
-  decrement(obj, prop, value) {
-    return Object.assign({}, obj, {[prop]: obj[prop] - value})
+    down$
+      .switchMap(event => move$.takeUntil(up$))
+      .startWith({ x: 100, y: 100})
+      .subscribe(position => this.position = position);
   }
 }
