@@ -20,9 +20,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     Observable.fromEvent(this.getNativeElement(this.btn), 'click')
-      .filter(event => event.shiftKey)
-      .map(event => 'Beast Mode Activated!!!')
-      .subscribe(message => this.message = message);
+      .subscribe(message => this.message = 'Beast Mode Activated!!!');
   }
 
   getNativeElement(element) {
