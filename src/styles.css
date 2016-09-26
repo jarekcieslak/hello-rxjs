@@ -1,5 +1,6 @@
 body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
+    padding: 100px;
 }
 .ball {
     cursor: pointer;
