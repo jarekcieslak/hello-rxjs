@@ -26,13 +26,8 @@ export class AppComponent implements OnInit {
   position: any;
 
   ngOnInit() {
-    const left$ = Observable.fromEvent(this.getNativeElement(this.left), 'click')
-      .map(event => -10)
-
-    const right$ = Observable.fromEvent(this.getNativeElement(this.right), 'click')
+    Observable.fromEvent(this.getNativeElement(this.right), 'click')
       .map(event => 10)
-
-    Observable.merge(left$, right$)
       .startWith({x: 200, y: 200})
       .scan((acc, curr) => Object.assign({}, acc, {x: acc.x + curr}))
       .subscribe(position => this.position = position);
