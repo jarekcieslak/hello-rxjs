@@ -22,7 +22,7 @@ export class AppComponent implements OnInit {
 
     // Observable.fromEvent(document, 'mousemove')
     Observable.fromEvent(document, 'click')
-      .map((event: any) => {
+      .map(event => {
         const offset = $(event.target).offset();
         return {
           x: event.clientX - offset.left,
