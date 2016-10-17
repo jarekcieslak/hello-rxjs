@@ -20,9 +20,8 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     const emptyLine: any = { x1: 0, y1: 0, x2: 0, y2: 0 };
 
-    // Observable.fromEvent(document, 'mousemove')
-    Observable.fromEvent(document, 'click')
-      .map((event: any) => {
+    Observable.fromEvent(document, '')
+      .map(event => {
         const offset = $(event.target).offset();
         return {
           x: event.clientX - offset.left,
