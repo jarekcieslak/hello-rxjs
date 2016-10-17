@@ -24,9 +24,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     Observable.fromEvent(this.getNativeElement(this.right), 'click')
-      .map(event => 10)
-      .startWith({x: 400, y: 400})
-      .scan((acc, curr) => Object.assign({}, acc, {x: acc.x + curr}))
       .subscribe(position => this.position = position);
   }
 
