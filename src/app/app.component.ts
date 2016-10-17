@@ -1,8 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/fromEvent';
-import 'rxjs/add/operator/filter';
-import 'rxjs/add/operator/map';
 
 @Component({
   selector: 'app-root',
@@ -20,9 +18,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     Observable.fromEvent(this.getNativeElement(this.btn), 'click')
-      .filter(event => event.shiftKey)
-      .map(event => 'Beast Mode Activated!!!')
-      .subscribe(message => this.message = message);
+      .subscribe(event => this.message = 'Beast Mode Activated!');
   }
 
   getNativeElement(element) {
